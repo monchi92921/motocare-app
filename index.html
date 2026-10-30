@@ -1,0 +1,110 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+<meta name="theme-color" content="#0b1118"><meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<meta name="apple-mobile-web-app-title" content="MOTOCARE">
+<link rel="manifest" href="manifest.json">
+<title>MOTOCARE — Motorcycle Tracker</title>
+<style>
+:root{--bg:#0b1118;--panel:#131e29;--panel2:#1b2a38;--line:#263746;--text:#f2f5f7;--muted:#9aabb9;--orange:#ff642d;--green:#39c58a;--red:#ff5d67;--yellow:#ffc857}
+*{box-sizing:border-box}body{margin:0;background:var(--bg);color:var(--text);font:15px system-ui,-apple-system,Segoe UI,sans-serif;padding-bottom:calc(82px + env(safe-area-inset-bottom))}
+header{position:sticky;top:0;z-index:5;background:#0b1118ee;backdrop-filter:blur(16px);padding:calc(12px + env(safe-area-inset-top)) 18px 12px;border-bottom:1px solid var(--line);display:flex;align-items:center;justify-content:space-between}
+.logo{font-weight:900;font-size:22px;letter-spacing:1px}.logo span{color:var(--orange)}.sub{font-size:10px;letter-spacing:2px;color:var(--muted)}
+button,.btn{border:0;border-radius:12px;padding:12px 14px;background:var(--orange);color:white;font-weight:750;font-size:13px;cursor:pointer}
+button.secondary{background:var(--panel2);color:var(--text);border:1px solid var(--line)}button.danger{background:#53252b;color:#ffdce0}
+main{max-width:720px;margin:auto;padding:16px}.page{display:none}.page.active{display:block}
+h1{font-size:25px;margin:5px 0 4px}h2{font-size:17px;margin:0 0 12px}.muted{color:var(--muted)}.eyebrow{font-size:10px;color:var(--orange);letter-spacing:2px;font-weight:800}
+.grid{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:10px;margin:16px 0}
+.card{background:linear-gradient(145deg,var(--panel),#101923);border:1px solid var(--line);border-radius:17px;padding:15px;margin-bottom:11px;box-shadow:0 8px 22px #0002}
+.stat{font-size:25px;font-weight:850;margin-top:5px}.statlabel{font-size:11px;color:var(--muted);text-transform:uppercase;letter-spacing:1px}
+.row{display:flex;align-items:center;justify-content:space-between;gap:10px}.pill{font-size:10px;padding:5px 8px;border-radius:30px;background:#233747;color:#b9d4e8}.pill.due{background:#4b2229;color:#ffb9bf}.pill.ok{background:#173b30;color:#9bf0c9}
+.listtitle{font-weight:800}.small{font-size:12px;color:var(--muted);line-height:1.5}
+nav{position:fixed;bottom:0;left:0;right:0;z-index:6;display:grid;grid-template-columns:repeat(5,1fr);background:#0d151eee;border-top:1px solid var(--line);padding:7px 5px calc(7px + env(safe-area-inset-bottom));backdrop-filter:blur(15px)}
+nav button{background:transparent;color:var(--muted);padding:8px 2px;font-size:10px;border-radius:10px}nav button.active{background:#3c241d;color:#ff9a73}
+nav b{display:block;font-size:17px;margin-bottom:2px}
+input,select,textarea{width:100%;background:#0c151e;border:1px solid var(--line);border-radius:11px;padding:12px;color:var(--text);font:inherit;margin:5px 0 12px;outline:none}
+label{font-size:11px;color:var(--muted);font-weight:700;letter-spacing:.6px}
+.formgrid{display:grid;grid-template-columns:1fr 1fr;gap:8px}.full{grid-column:1/-1}
+.actions{display:flex;gap:7px;flex-wrap:wrap;margin-top:12px}.actions button{padding:9px 11px;font-size:11px}
+.empty{text-align:center;padding:25px 12px;color:var(--muted)}.empty strong{display:block;color:var(--text);font-size:16px;margin-bottom:5px}
+.search{margin:8px 0 14px}
+.modal{position:fixed;inset:0;background:#000a;display:none;align-items:end;z-index:10}.modal.open{display:flex}.sheet{width:100%;max-height:90vh;overflow:auto;background:var(--panel);border-radius:22px 22px 0 0;padding:20px 18px calc(25px + env(safe-area-inset-bottom));border-top:1px solid var(--line)}.sheethead{display:flex;justify-content:space-between;align-items:center;margin-bottom:14px}
+.toast{position:fixed;left:50%;bottom:95px;transform:translateX(-50%);background:#263746;color:white;padding:11px 16px;border-radius:30px;display:none;z-index:20;font-size:13px}
+hr{border:0;border-top:1px solid var(--line);margin:14px 0}
+@media(min-width:600px){main{padding:24px}.grid{grid-template-columns:repeat(4,1fr)}}
+</style></head>
+<body>
+<header><div><div class="logo">MOTO<span>CARE</span></div><div class="sub">MOTORCYCLE MAINTENANCE TRACKER</div></div><button class="secondary" onclick="exportData()">BACKUP</button></header>
+<main>
+<section id="dashboard" class="page active">
+<div class="eyebrow">RIDE SMART. MAINTAIN BETTER.</div><h1>Your garage at a glance.</h1><p class="muted">Keep every motorcycle, service, part and peso organized.</p>
+<div class="grid" id="stats"></div>
+<div class="row"><h2>Maintenance watchlist</h2><button onclick="go('parts')" class="secondary">View all</button></div><div id="watchlist"></div>
+<div class="row"><h2>My motorcycles</h2><button onclick="openForm('bike')" >+ Add bike</button></div><div id="dashbikes"></div>
+<h2>Recent activity</h2><div id="recent"></div>
+</section>
+<section id="garage" class="page"><div class="eyebrow">YOUR MOTORCYCLES</div><h1>My Garage</h1><p class="muted">Manage your bikes and odometer readings.</p><button onclick="openForm('bike')">+ Add motorcycle</button><input class="search" id="bikeSearch" placeholder="Search brand, model or plate..." oninput="renderGarage()"><div id="bikelist"></div></section>
+<section id="parts" class="page"><div class="eyebrow">REPLACEMENT TRACKER</div><h1>Parts & Maintenance</h1><p class="muted">Track replacement intervals by mileage.</p><button onclick="openForm('part')">+ Track a part</button><input class="search" id="partSearch" placeholder="Search parts..." oninput="renderParts()"><div id="partlist"></div></section>
+<section id="history" class="page"><div class="eyebrow">SERVICE LOGBOOK</div><h1>Service History</h1><p class="muted">A complete record of repairs and maintenance.</p><button onclick="openForm('service')">+ Add service record</button><input class="search" id="serviceSearch" placeholder="Search service records..." oninput="renderHistory()"><div id="servicelist"></div></section>
+<section id="costs" class="page"><div class="eyebrow">KNOW WHERE IT GOES</div><h1>Expenses & Reports</h1><p class="muted">Monitor maintenance spending and export your records.</p><div id="costsummary"></div><button onclick="openForm('expense')">+ Add expense</button><button class="secondary" onclick="exportCSV()">Export CSV</button><div id="expenselist"></div></section>
+</main>
+<nav>
+<button class="active" data-page="dashboard" onclick="go('dashboard')"><b>⌂</b>HOME</button>
+<button data-page="garage" onclick="go('garage')"><b>◉</b>GARAGE</button>
+<button data-page="parts" onclick="go('parts')"><b>⚙</b>PARTS</button>
+<button data-page="history" onclick="go('history')"><b>▤</b>HISTORY</button>
+<button data-page="costs" onclick="go('costs')"><b>₱</b>COSTS</button>
+</nav>
+<div class="modal" id="modal" onclick="if(event.target.id==='modal')closeModal()"><div class="sheet"><div class="sheethead"><h2 id="formTitle">Add item</h2><button class="secondary" onclick="closeModal()">✕</button></div><form id="editor" onsubmit="saveForm(event)"><div id="fields" class="formgrid"></div><button type="submit" style="width:100%">SAVE RECORD</button></form></div></div>
+<div class="toast" id="toast"></div>
+<script>
+const $=id=>document.getElementById(id), today=()=>new Date().toISOString().slice(0,10);
+let db=JSON.parse(localStorage.getItem('motocare_db')||'{"bikes":[],"parts":[],"services":[],"expenses":[]}');
+let formType='',editId=null;
+function persist(){localStorage.setItem('motocare_db',JSON.stringify(db));renderAll()}
+function id(){return Date.now()+Math.floor(Math.random()*1000)}
+function money(n){return '₱'+Number(n||0).toLocaleString('en-PH',{minimumFractionDigits:2,maximumFractionDigits:2})}
+function toast(s){$('toast').textContent=s;$('toast').style.display='block';setTimeout(()=>$('toast').style.display='none',2200)}
+function go(p){document.querySelectorAll('.page').forEach(x=>x.classList.remove('active'));$(p).classList.add('active');document.querySelectorAll('nav button').forEach(x=>x.classList.toggle('active',x.dataset.page===p));renderAll()}
+function bikeName(bid){let b=db.bikes.find(x=>x.id==bid);return b?b.brand+' '+b.model:'Unknown motorcycle'}
+function card(title,sub,badge='',actions=''){return `<div class="card"><div class="row"><div class="listtitle">${esc(title)}</div>${badge?`<span class="pill ${badge==='DUE'?'due':'ok'}">${badge}</span>`:''}</div><div class="small">${esc(sub)}</div>${actions?`<div class="actions">${actions}</div>`:''}</div>`}
+function esc(s){return String(s??'').replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]))}
+function btn(t,fn,cls='secondary'){return `<button class="${cls}" onclick="${fn}">${t}</button>`}
+function renderAll(){renderDashboard();renderGarage();renderParts();renderHistory();renderCosts()}
+function renderDashboard(){
+let total=db.expenses.reduce((a,x)=>a+Number(x.amount),0), due=db.parts.filter(p=>{let b=db.bikes.find(x=>x.id==p.bikeId);return b&&b.mileage>=Number(p.lastKm)+Number(p.intervalKm)}).length;
+$('stats').innerHTML=[['MOTORCYCLES',db.bikes.length],['PARTS TRACKED',db.parts.length],['MAINTENANCE DUE',due],['TOTAL SPENT',money(total)]].map(x=>`<div class="card"><div class="statlabel">${x[0]}</div><div class="stat">${x[1]}</div></div>`).join('');
+let w=db.parts.filter(p=>{let b=db.bikes.find(x=>x.id==p.bikeId);return b&&b.mileage>=Number(p.lastKm)+Number(p.intervalKm)}).slice(0,4);
+$('watchlist').innerHTML=w.length?w.map(p=>card(p.name,bikeName(p.bikeId)+' • Due at '+(Number(p.lastKm)+Number(p.intervalKm)).toLocaleString()+' km','DUE')).join(''):card('All clear','No mileage-based part replacement is currently due.','OK');
+$('dashbikes').innerHTML=db.bikes.length?db.bikes.slice(0,3).map(b=>card(b.brand+' '+b.model,(b.year||'')+' • '+Number(b.mileage).toLocaleString()+' km • '+(b.plate||'No plate'))).join(''):empty('No motorcycle registered','Add your first motorcycle to start tracking.');
+$('recent').innerHTML=db.services.slice().sort((a,b)=>b.date.localeCompare(a.date)).slice(0,3).map(s=>card(s.type,bikeName(s.bikeId)+' • '+s.date+' • '+money(s.total))).join('')||empty('No service records','Your latest service activity will appear here.');
+}
+function empty(t,s){return `<div class="card empty"><strong>${t}</strong>${s}</div>`}
+function renderGarage(){let q=($('bikeSearch')?.value||'').toLowerCase();let rows=db.bikes.filter(b=>(b.brand+' '+b.model+' '+b.plate).toLowerCase().includes(q));$('bikelist').innerHTML=rows.map(b=>card(b.brand+' '+b.model,`Year: ${b.year||'—'} • Plate: ${b.plate||'—'} • Odometer: ${Number(b.mileage).toLocaleString()} km`,'',btn('EDIT',`openForm('bike',${b.id})`)+btn('DELETE',`del('bikes',${b.id})`,'danger'))).join('')||empty('Garage is empty','Tap Add motorcycle to register your bike.')}
+function renderParts(){let q=($('partSearch')?.value||'').toLowerCase();let rows=db.parts.filter(p=>(p.name+' '+bikeName(p.bikeId)).toLowerCase().includes(q));$('partlist').innerHTML=rows.map(p=>{let b=db.bikes.find(x=>x.id==p.bikeId),due=Number(p.lastKm)+Number(p.intervalKm),isDue=b&&Number(b.mileage)>=due;return card(p.name,bikeName(p.bikeId)+` • Last replaced: ${Number(p.lastKm).toLocaleString()} km • Interval: ${Number(p.intervalKm).toLocaleString()} km • Next: ${due.toLocaleString()} km`,isDue?'DUE':'ON TRACK',btn('MARK REPLACED',`replacePart(${p.id})`)+btn('EDIT',`openForm('part',${p.id})`)+btn('DELETE',`del('parts',${p.id})`,'danger'))}).join('')||empty('No parts tracked','Add engine oil, gear oil, tires, brake pads, CVT belt and more.')}
+function renderHistory(){let q=($('serviceSearch')?.value||'').toLowerCase();let rows=db.services.filter(s=>(s.type+' '+s.notes+' '+bikeName(s.bikeId)).toLowerCase().includes(q)).sort((a,b)=>b.date.localeCompare(a.date));$('servicelist').innerHTML=rows.map(s=>card(s.type,bikeName(s.bikeId)+` • ${s.date} • ${Number(s.mileage).toLocaleString()} km • Parts: ${s.parts||'—'} • Total: ${money(s.total)}`,'',btn('EDIT',`openForm('service',${s.id})`)+btn('DELETE',`del('services',${s.id})`,'danger'))).join('')||empty('No service records','Add your first maintenance or repair record.')}
+function renderCosts(){let sum=db.expenses.reduce((a,x)=>a+Number(x.amount),0);$('costsummary').innerHTML=card('TOTAL RECORDED SPENDING',money(sum)+` • ${db.expenses.length} expense entries`);$('expenselist').innerHTML=db.expenses.slice().sort((a,b)=>b.date.localeCompare(a.date)).map(e=>card(e.category,money(e.amount)+' • '+e.date+' • '+bikeName(e.bikeId)+' • '+(e.notes||''),'',btn('EDIT',`openForm('expense',${e.id})`)+btn('DELETE',`del('expenses',${e.id})`,'danger'))).join('')||empty('No expenses yet','Record fuel, parts, labor or other costs.')}
+function fieldsFor(type,obj={}){
+let bikes=db.bikes;if(!bikes.length&&type!=='bike'){toast('Add a motorcycle first.');return null}
+let bikeOpts=bikes.map(b=>`<option value="${b.id}" ${obj.bikeId==b.id?'selected':''}>${esc(b.brand+' '+b.model)}</option>`).join('');
+let specs={
+bike:[['brand','Brand','text'],['model','Model','text'],['year','Year','number'],['plate','Plate number','text'],['mileage','Current odometer (km)','number']],
+part:[['bikeId','Motorcycle','select'],['name','Part / consumable','text'],['intervalKm','Replacement interval (km)','number'],['lastKm','Last replaced at (km)','number'],['lastDate','Last replacement date','date']],
+service:[['bikeId','Motorcycle','select'],['type','Service type','text'],['date','Service date','date'],['mileage','Odometer (km)','number'],['parts','Parts used','text'],['labor','Labor cost (PHP)','number'],['total','Total cost (PHP)','number'],['notes','Notes','textarea']],
+expense:[['bikeId','Motorcycle','select'],['category','Category','text'],['amount','Amount (PHP)','number'],['date','Date','date'],['notes','Notes','textarea']]
+};
+return specs[type].map(([k,label,t])=>{let v=obj[k]??(k==='date'||k==='lastDate'?today():k==='bikeId'?bikes[0].id:k==='intervalKm'?2000:k==='mileage'||k==='lastKm'?0:k==='labor'||k==='total'||k==='amount'?0:'');let input=t==='select'?`<select name="${k}" required>${bikeOpts}</select>`:t==='textarea'?`<textarea name="${k}" rows="2" placeholder="${label}">${esc(v)}</textarea>`:`<input name="${k}" type="${t}" placeholder="${label}" value="${esc(v)}" ${['brand','model','name','type','category'].includes(k)?'required':''}>`;return `<div class="${t==='textarea'?'full':''}"><label>${label.toUpperCase()}</label>${input}</div>`}).join('');
+}
+function openForm(type,edit=null){formType=type;editId=edit;let table={bike:'bikes',part:'parts',service:'services',expense:'expenses'}[type],obj=edit?db[table].find(x=>x.id==edit):{};let fields=fieldsFor(type,obj||{});if(fields===null)return;$('formTitle').textContent=(edit?'Edit ':'Add ')+({bike:'motorcycle',part:'tracked part',service:'service record',expense:'expense'}[type]);$('fields').innerHTML=fields;$('modal').classList.add('open')}
+function closeModal(){$('modal').classList.remove('open')}
+function saveForm(e){e.preventDefault();let data=Object.fromEntries(new FormData(e.target).entries());['year','mileage','intervalKm','lastKm','labor','total','amount'].forEach(k=>{if(k in data)data[k]=Number(data[k]||0)});if('bikeId'in data)data.bikeId=Number(data.bikeId);if(formType==='service'){let b=db.bikes.find(x=>x.id===data.bikeId);if(b)b.mileage=Math.max(Number(b.mileage),Number(data.mileage))}let table={bike:'bikes',part:'parts',service:'services',expense:'expenses'}[formType];if(editId){let i=db[table].findIndex(x=>x.id==editId);db[table][i]={...db[table][i],...data}}else db[table].push({id:id(),...data});closeModal();persist();toast('Saved successfully')}
+function del(table,rid){if(!confirm('Delete this record?'))return;db[table]=db[table].filter(x=>x.id!=rid);if(table==='bikes'){['parts','services','expenses'].forEach(t=>db[t]=db[t].filter(x=>x.bikeId!=rid))}persist();toast('Record deleted')}
+function replacePart(rid){let p=db.parts.find(x=>x.id==rid),b=db.bikes.find(x=>x.id==p.bikeId);p.lastKm=Number(b?.mileage||p.lastKm);p.lastDate=today();persist();toast('Replacement mileage updated')}
+function download(name,content,type){let a=document.createElement('a'),url=URL.createObjectURL(new Blob([content],{type}));a.href=url;a.download=name;a.click();URL.revokeObjectURL(url)}
+function exportData(){download('motocare-backup.json',JSON.stringify(db,null,2),'application/json')}
+function exportCSV(){let rows=[['Type','Motorcycle','Date','Amount','Details'],...db.expenses.map(e=>['Expense',bikeName(e.bikeId),e.date,e.amount,e.category+' '+e.notes]),...db.services.map(s=>['Service',bikeName(s.bikeId),s.date,s.total,s.type+' '+s.parts])];download('motocare-report.csv',rows.map(r=>r.map(x=>'"'+String(x??'').replaceAll('"','""')+'"').join(',')).join('\n'),'text/csv')}
+if('serviceWorker'in navigator && location.protocol.startsWith('http'))navigator.serviceWorker.register('./sw.js').catch(()=>{});
+renderAll();
+</script></body></html>
